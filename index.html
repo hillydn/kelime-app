@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelime Kartları - Oxford 3000</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#667eea">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" title="Koyu / açık mod">🌙</button>
+
+<!-- SEVİYE SEÇİM EKRANI -->
+<div class="level-screen" id="levelScreen">
+  <h1>Kelime Kartları</h1>
+  <p class="subtitle">Çalışmak istediğin seviyeleri seç</p>
+
+  <div class="level-options">
+    <label class="level-option">
+      <input type="checkbox" value="A1" class="levelCheck" checked>
+      <span class="level-name">A1</span>
+      <span class="level-count" id="countA1"></span>
+    </label>
+    <label class="level-option">
+      <input type="checkbox" value="A2" class="levelCheck" checked>
+      <span class="level-name">A2</span>
+      <span class="level-count" id="countA2"></span>
+    </label>
+    <label class="level-option">
+      <input type="checkbox" value="B1" class="levelCheck" checked>
+      <span class="level-name">B1</span>
+      <span class="level-count" id="countB1"></span>
+    </label>
+  </div>
+
+  <div class="goal-setting">
+    <label for="dailyGoalInput">Günlük hedef (kelime)</label>
+    <input type="number" id="dailyGoalInput" min="5" max="300" step="5" value="20">
+  </div>
+
+  <div class="mode-setting">
+    <label>Test Modu</label>
+    <div class="mode-options">
+      <label class="mode-option"><input type="radio" name="quizMode" value="card" checked><span>Kart</span></label>
+      <label class="mode-option"><input type="radio" name="quizMode" value="mc"><span>Çoktan Seçmeli</span></label>
+      <label class="mode-option"><input type="radio" name="quizMode" value="mixed"><span>Karışık</span></label>
+    </div>
+  </div>
+
+  <div class="streak-preview" id="streakPreview"></div>
+
+  <button class="btn btn-start" id="btnStart">Teste Başla</button>
+  <button class="btn-link" id="btnOpenStatsFromHome">📊 İstatistiklerimi Gör</button>
+  <button class="btn-link" id="btnOpenSearch">🔍 Kelime Ara</button>
+
+  <div class="backup-row">
+    <button class="btn-link" id="btnExport">⬇ İlerlemeyi Yedekle</button>
+    <button class="btn-link" id="btnImport">⬆ Yedek Yükle</button>
+    <input type="file" id="importFileInput" accept="application/json" style="display:none;">
+  </div>
+</div>
+
+<!-- ANA UYGULAMA EKRANI -->
+<div class="app-screen" id="appScreen" style="display:none;">
+
+  <div class="top-bar">
+    <div class="top-row">
+      <button class="back-btn" id="btnBack">← Seviyeler</button>
+      <div class="day-info">
+        <span class="streak-badge" id="streakDisplay">🔥 0</span>
+        <span class="today-badge" id="todayProgress">Bugün: 0/20</span>
+        <button class="stats-btn" id="btnStats">📊</button>
+      </div>
+    </div>
+    <div class="progress-text" id="progressText">0 / 0</div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <button class="stat known" id="statKnown">Biliyorum: 0</button>
+    <button class="stat unknown" id="statUnknown">Bilmiyorum: 0</button>
+    <button class="stat unclear" id="statUnclear">Hatırlamıyorum: 0</button>
+  </div>
+
+  <div class="card-area">
+    <div class="card" id="card">
+      <div class="card-inner" id="cardInner">
+        <div class="card-face card-front">
+          <div class="level-badge" id="wordLevel"></div>
+          <button class="speak-btn" id="speakBtn" title="Telaffuzu dinle">🔊</button>
+          <div class="pos" id="wordPos"></div>
+          <div class="word" id="wordEn">yükleniyor...</div>
+          <div class="hint">Anlamı görmek için tıkla</div>
+        </div>
+        <div class="card-face card-back">
+          <div class="word-tr" id="wordTr"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mc-area" id="mcArea" style="display:none;">
+    <div class="mc-card">
+      <div class="level-badge" id="mcLevel"></div>
+      <button class="speak-btn" id="mcSpeakBtn" title="Telaffuzu dinle">🔊</button>
+      <div class="pos" id="mcPos"></div>
+      <div class="word" id="mcWord"></div>
+      <div class="mc-question-hint">Doğru Türkçe anlamı seç</div>
+    </div>
+    <div class="mc-options" id="mcOptions"></div>
+    <button class="btn btn-mc-next" id="btnMcNext" style="display:none;">Devam →</button>
+  </div>
+
+  <div class="buttons" id="buttonsArea">
+    <button class="btn btn-unknown" id="btnUnknown">✗ Bilmiyorum</button>
+    <button class="btn btn-unclear" id="btnUnclear">? Hatırlamıyorum</button>
+    <button class="btn btn-known" id="btnKnown">✓ Biliyorum</button>
+  </div>
+
+  <div class="finished" id="finishedScreen" style="display:none;">
+    <h2>Bu tur tamamlandı! 🎉</h2>
+    <p id="finishedSummary"></p>
+    <button class="btn btn-restart" id="btnRestart">Tekrar Başla</button>
+  </div>
+
+</div>
+
+<!-- GÜNLÜK HEDEF KUTLAMA EKRANI -->
+<div class="goal-overlay" id="goalOverlay" style="display:none;">
+  <div class="goal-card">
+    <div class="goal-emoji">🎉</div>
+    <h2>Bugünkü hedefini tamamladın!</h2>
+    <p id="goalStreakText">3 gündür üst üste çalışıyorsun 🔥</p>
+    <div class="goal-buttons">
+      <button class="btn btn-goal-stop" id="btnGoalStop">Bugünlük Yeter</button>
+      <button class="btn btn-goal-continue" id="btnGoalContinue">Devam Et</button>
+    </div>
+  </div>
+</div>
+
+<!-- LİSTE MODALI -->
+<div class="modal-overlay" id="modalOverlay" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Liste</h3>
+      <button class="modal-close" id="modalClose">×</button>
+    </div>
+    <div class="modal-list" id="modalList"></div>
+  </div>
+</div>
+
+<!-- İSTATİSTİK MODALI -->
+<div class="modal-overlay" id="statsOverlay" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Haftalık İstatistik</h3>
+      <button class="modal-close" id="statsClose">×</button>
+    </div>
+    <div class="modal-list">
+      <div class="stats-summary" id="statsSummary"></div>
+      <div class="chart" id="weekChart"></div>
+    </div>
+  </div>
+</div>
+
+<!-- KELİME ARAMA MODALI -->
+<div class="modal-overlay" id="searchOverlay" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Kelime Ara</h3>
+      <button class="modal-close" id="searchClose">×</button>
+    </div>
+    <div class="modal-list">
+      <input type="text" id="searchInput" class="search-input" placeholder="İngilizce veya Türkçe yaz...">
+      <div id="searchResults"></div>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="examples.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
